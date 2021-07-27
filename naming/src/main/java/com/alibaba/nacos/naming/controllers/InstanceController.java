@@ -485,6 +485,10 @@ public class InstanceController {
         return instance;
     }
 
+    /**
+     * 判断并返回采用V1版本或V2版本的操作服务
+     * @return V1：Jraft协议（服务器端）；V2：gRpc协议（客户端）
+     */
     private InstanceOperator getInstanceOperator() {
         return upgradeJudgement.isUseGrpcFeatures() ? instanceServiceV2 : instanceServiceV1;
     }

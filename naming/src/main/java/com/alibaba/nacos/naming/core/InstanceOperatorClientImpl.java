@@ -62,21 +62,21 @@ import java.util.Optional;
  */
 @org.springframework.stereotype.Service
 public class InstanceOperatorClientImpl implements InstanceOperator {
-    
+
     private final ClientManager clientManager;
-    
+
     private final ClientOperationService clientOperationService;
-    
+
     private final ServiceStorage serviceStorage;
-    
+
     private final NamingMetadataOperateService metadataOperateService;
-    
+
     private final NamingMetadataManager metadataManager;
-    
+
     private final SwitchDomain switchDomain;
-    
+
     private final UdpPushService pushService;
-    
+
     public InstanceOperatorClientImpl(ClientManagerDelegate clientManager,
             ClientOperationServiceProxy clientOperationService, ServiceStorage serviceStorage,
             NamingMetadataOperateService metadataOperateService, NamingMetadataManager metadataManager,
@@ -89,7 +89,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         this.switchDomain = switchDomain;
         this.pushService = pushService;
     }
-    
+
     /**
      * This method creates {@code IpPortBasedClient} if it don't exist.
      */
@@ -98,10 +98,12 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         boolean ephemeral = instance.isEphemeral();
         String clientId = IpPortBasedClient.getClientId(instance.toInetAddr(), ephemeral);
         createIpPortClientIfAbsent(clientId, ephemeral);
+        // 创建一个新的Service
         Service service = getService(namespaceId, serviceName, ephemeral);
+        // 实例注册
         clientOperationService.registerInstance(service, instance, clientId);
     }
-    
+
     @Override
     public void removeInstance(String namespaceId, String serviceName, Instance instance) {
         boolean ephemeral = instance.isEphemeral();
@@ -113,7 +115,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         Service service = getService(namespaceId, serviceName, ephemeral);
         clientOperationService.deregisterInstance(service, instance, clientId);
     }
-    
+
     @Override
     public void updateInstance(String namespaceId, String serviceName, Instance instance) throws NacosException {
         Service service = getService(namespaceId, serviceName, instance.isEphemeral());
@@ -125,7 +127,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
                 .genMetadataId(instance.getIp(), instance.getPort(), instance.getClusterName());
         metadataOperateService.updateInstanceMetadata(service, metadataId, buildMetadata(instance));
     }
-    
+
     private InstanceMetadata buildMetadata(Instance instance) {
         InstanceMetadata result = new InstanceMetadata();
         result.setEnabled(instance.isEnabled());
@@ -133,7 +135,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         result.getExtendData().putAll(instance.getMetadata());
         return result;
     }
-    
+
     @Override
     public void patchInstance(String namespaceId, String serviceName, InstancePatchObject patchObject)
             throws NacosException {
@@ -147,7 +149,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         mergeMetadata(newMetadata, patchObject);
         metadataOperateService.updateInstanceMetadata(service, metadataId, newMetadata);
     }
-    
+
     private InstanceMetadata cloneMetadata(InstanceMetadata instanceMetadata) {
         InstanceMetadata result = new InstanceMetadata();
         result.setExtendData(new HashMap<>(instanceMetadata.getExtendData()));
@@ -155,7 +157,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         result.setEnabled(instanceMetadata.isEnabled());
         return result;
     }
-    
+
     private void mergeMetadata(InstanceMetadata newMetadata, InstancePatchObject patchObject) {
         if (null != patchObject.getMetadata()) {
             newMetadata.setExtendData(new HashMap<>(patchObject.getMetadata()));
@@ -167,7 +169,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
             newMetadata.setWeight(patchObject.getWeight());
         }
     }
-    
+
     @Override
     public ServiceInfo listInstance(String namespaceId, String serviceName, Subscriber subscriber, String cluster,
             boolean healthOnly) {
@@ -186,14 +188,14 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         result.setName(NamingUtils.getGroupedName(result.getName(), result.getGroupName()));
         return result;
     }
-    
+
     @Override
     public Instance getInstance(String namespaceId, String serviceName, String cluster, String ip, int port)
             throws NacosException {
         Service service = getService(namespaceId, serviceName, true);
         return getInstance0(service, cluster, ip, port);
     }
-    
+
     private Instance getInstance0(Service service, String cluster, String ip, int port) throws NacosException {
         ServiceInfo serviceInfo = serviceStorage.getData(service);
         if (serviceInfo.getHosts().isEmpty()) {
@@ -207,7 +209,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         }
         throw new NacosException(NacosException.NOT_FOUND, "no matched ip found!");
     }
-    
+
     @Override
     public int handleBeat(String namespaceId, String serviceName, String ip, int port, String cluster,
             RsInfo clientBeat) throws NacosException {
@@ -246,7 +248,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         client.setLastUpdatedTime();
         return NamingResponseCode.OK;
     }
-    
+
     @Override
     public long getHeartBeatInterval(String namespaceId, String serviceName, String ip, int port, String cluster) {
         Service service = getService(namespaceId, serviceName, true);
@@ -264,13 +266,13 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         }
         return switchDomain.getClientBeatInterval();
     }
-    
+
     @Override
     public List<? extends Instance> listAllInstances(String namespaceId, String serviceName) throws NacosException {
         Service service = getService(namespaceId, serviceName, true);
         return serviceStorage.getData(service).getHosts();
     }
-    
+
     @Override
     public List<String> batchUpdateMetadata(String namespaceId, InstanceOperationInfo instanceOperationInfo,
             Map<String, String> metadata) throws NacosException {
@@ -290,7 +292,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         }
         return result;
     }
-    
+
     @Override
     public List<String> batchDeleteMetadata(String namespaceId, InstanceOperationInfo instanceOperationInfo,
             Map<String, String> metadata) throws NacosException {
@@ -310,7 +312,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         }
         return result;
     }
-    
+
     private List<Instance> findBatchUpdateInstance(InstanceOperationInfo instanceOperationInfo, Service service) {
         if (null == instanceOperationInfo.getInstances() || instanceOperationInfo.getInstances().isEmpty()) {
             return serviceStorage.getData(service).getHosts();
@@ -325,17 +327,17 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         }
         return result;
     }
-    
+
     private void createIpPortClientIfAbsent(String clientId, boolean ephemeral) {
         if (!clientManager.contains(clientId)) {
             clientManager.clientConnected(new IpPortBasedClient(clientId, ephemeral));
         }
     }
-    
+
     private Service getService(String namespaceId, String serviceName, boolean ephemeral) {
         String groupName = NamingUtils.getGroupName(serviceName);
         String serviceNameNoGrouped = NamingUtils.getServiceName(serviceName);
         return Service.newService(namespaceId, groupName, serviceNameNoGrouped, ephemeral);
     }
-    
+
 }
