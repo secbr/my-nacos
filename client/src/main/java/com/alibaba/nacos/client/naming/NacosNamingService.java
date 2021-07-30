@@ -142,6 +142,7 @@ public class NacosNamingService implements NamingService {
     @Override
     public void registerInstance(String serviceName, String groupName, Instance instance) throws NacosException {
         NamingUtils.checkInstanceIsLegal(instance);
+        // 通过代理模式，进行服务注册。默认采用grpc协议通信
         clientProxy.registerService(serviceName, groupName, instance);
     }
 
