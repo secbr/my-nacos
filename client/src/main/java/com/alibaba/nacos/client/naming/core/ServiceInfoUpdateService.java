@@ -46,21 +46,21 @@ import static com.alibaba.nacos.client.utils.LogUtils.NAMING_LOGGER;
  * @author xiweng.yy
  */
 public class ServiceInfoUpdateService implements Closeable {
-    
+
     private static final long DEFAULT_DELAY = 1000L;
-    
+
     private static final int DEFAULT_UPDATE_CACHE_TIME_MULTIPLE = 6;
-    
+
     private final Map<String, ScheduledFuture<?>> futureMap = new HashMap<String, ScheduledFuture<?>>();
-    
+
     private final ServiceInfoHolder serviceInfoHolder;
-    
+
     private final ScheduledExecutorService executor;
-    
+
     private final NamingClientProxy namingClientProxy;
-    
+
     private final InstancesChangeNotifier changeNotifier;
-    
+
     public ServiceInfoUpdateService(Properties properties, ServiceInfoHolder serviceInfoHolder,
             NamingClientProxy namingClientProxy, InstancesChangeNotifier changeNotifier) {
         this.executor = new ScheduledThreadPoolExecutor(initPollingThreadCount(properties),
@@ -69,7 +69,7 @@ public class ServiceInfoUpdateService implements Closeable {
         this.namingClientProxy = namingClientProxy;
         this.changeNotifier = changeNotifier;
     }
-    
+
     private int initPollingThreadCount(Properties properties) {
         if (properties == null) {
             return UtilAndComs.DEFAULT_POLLING_THREAD_COUNT;
@@ -77,7 +77,7 @@ public class ServiceInfoUpdateService implements Closeable {
         return ConvertUtils.toInt(properties.getProperty(PropertyKeyConst.NAMING_POLLING_THREAD_COUNT),
                 UtilAndComs.DEFAULT_POLLING_THREAD_COUNT);
     }
-    
+
     /**
      * Schedule update if absent.
      *
@@ -94,16 +94,16 @@ public class ServiceInfoUpdateService implements Closeable {
             if (futureMap.get(serviceKey) != null) {
                 return;
             }
-            
+
             ScheduledFuture<?> future = addTask(new UpdateTask(serviceName, groupName, clusters));
             futureMap.put(serviceKey, future);
         }
     }
-    
+
     private synchronized ScheduledFuture<?> addTask(UpdateTask task) {
         return executor.schedule(task, DEFAULT_DELAY, TimeUnit.MILLISECONDS);
     }
-    
+
     /**
      * Stop to schedule update if contain task.
      *
@@ -123,7 +123,7 @@ public class ServiceInfoUpdateService implements Closeable {
             futureMap.remove(serviceKey);
         }
     }
-    
+
     @Override
     public void shutdown() throws NacosException {
         String className = this.getClass().getName();
@@ -131,26 +131,31 @@ public class ServiceInfoUpdateService implements Closeable {
         ThreadUtils.shutdownThreadPool(executor, NAMING_LOGGER);
         NAMING_LOGGER.info("{} do shutdown stop", className);
     }
-    
+
+    /**
+     * 当我们开启订阅时subscribe时，会通过调度器生成一个UpdateTask；
+     * UpdateTask每个6秒钟（最长为1分钟）会从注册中心获取实例Instance列表，
+     * 当检测到实例Instance列表有变更时会通过NotifyCenter.publishEvent发布实例变更事件
+     */
     public class UpdateTask implements Runnable {
-        
+
         long lastRefTime = Long.MAX_VALUE;
-        
+
         private final String serviceName;
-        
+
         private final String groupName;
-        
+
         private final String clusters;
-        
+
         private final String groupedServiceName;
-        
+
         private final String serviceKey;
-    
+
         /**
          * the fail situation. 1:can't connect to server 2:serviceInfo's hosts is empty
          */
         private int failCount = 0;
-        
+
         public UpdateTask(String serviceName, String groupName, String clusters) {
             this.serviceName = serviceName;
             this.groupName = groupName;
@@ -158,18 +163,18 @@ public class ServiceInfoUpdateService implements Closeable {
             this.groupedServiceName = NamingUtils.getGroupedName(serviceName, groupName);
             this.serviceKey = ServiceInfo.getKey(groupedServiceName, clusters);
         }
-        
+
         @Override
         public void run() {
             long delayTime = DEFAULT_DELAY;
-            
+
             try {
                 if (!changeNotifier.isSubscribed(groupName, serviceName, clusters) && !futureMap.containsKey(serviceKey)) {
                     NAMING_LOGGER
                             .info("update task is stopped, service:" + groupedServiceName + ", clusters:" + clusters);
                     return;
                 }
-                
+
                 ServiceInfo serviceObj = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
                 if (serviceObj == null) {
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
@@ -177,7 +182,7 @@ public class ServiceInfoUpdateService implements Closeable {
                     lastRefTime = serviceObj.getLastRefTime();
                     return;
                 }
-                
+
                 if (serviceObj.getLastRefTime() <= lastRefTime) {
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
                     serviceInfoHolder.processServiceInfo(serviceObj);
@@ -197,7 +202,7 @@ public class ServiceInfoUpdateService implements Closeable {
                 executor.schedule(this, Math.min(delayTime << failCount, DEFAULT_DELAY * 60), TimeUnit.MILLISECONDS);
             }
         }
-    
+
         private void incFailCount() {
             int limit = 6;
             if (failCount == limit) {
@@ -205,7 +210,7 @@ public class ServiceInfoUpdateService implements Closeable {
             }
             failCount++;
         }
-    
+
         private void resetFailCount() {
             failCount = 0;
         }
