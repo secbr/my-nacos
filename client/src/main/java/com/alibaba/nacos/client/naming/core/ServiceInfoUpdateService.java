@@ -63,6 +63,8 @@ public class ServiceInfoUpdateService implements Closeable {
 
     public ServiceInfoUpdateService(Properties properties, ServiceInfoHolder serviceInfoHolder,
             NamingClientProxy namingClientProxy, InstancesChangeNotifier changeNotifier) {
+        // 定时任务调度执行器，线程池大小为处理器核数的一半，可以通过参数"namingPollingThreadCount”指定;
+        // 职责：调度器用于执行UpdateTask，延迟1秒执行。
         this.executor = new ScheduledThreadPoolExecutor(initPollingThreadCount(properties),
                 new NameThreadFactory("com.alibaba.nacos.client.naming.updater"));
         this.serviceInfoHolder = serviceInfoHolder;
@@ -94,7 +96,7 @@ public class ServiceInfoUpdateService implements Closeable {
             if (futureMap.get(serviceKey) != null) {
                 return;
             }
-
+            // 构建UpdateTask
             ScheduledFuture<?> future = addTask(new UpdateTask(serviceName, groupName, clusters));
             futureMap.put(serviceKey, future);
         }
@@ -135,7 +137,13 @@ public class ServiceInfoUpdateService implements Closeable {
     /**
      * 当我们开启订阅时subscribe时，会通过调度器生成一个UpdateTask；
      * UpdateTask每个6秒钟（最长为1分钟）会从注册中心获取实例Instance列表，
-     * 当检测到实例Instance列表有变更时会通过NotifyCenter.publishEvent发布实例变更事件
+     * 当检测到实例Instance列表有变更时会通过NotifyCenter.publishEvent发布实例变更事件;
+     *
+     *
+     * UpdateTask主要逻辑为如果服务缓存刷新时间过期，
+     * 则会从注册中心查询最新服务信息，同时刷新缓存更新时间。
+     * 并定时调度去更新服务注册信息，更新的频率最小为6秒，最长为1分钟。
+     * 当更新无异常时更新频率为6秒，当发生异常时最长频率为1分钟。
      */
     public class UpdateTask implements Runnable {
 
@@ -169,36 +177,47 @@ public class ServiceInfoUpdateService implements Closeable {
             long delayTime = DEFAULT_DELAY;
 
             try {
+                // 判断该注册的Service是否被订阅，如果没有订阅则不再执行
                 if (!changeNotifier.isSubscribed(groupName, serviceName, clusters) && !futureMap.containsKey(serviceKey)) {
                     NAMING_LOGGER
                             .info("update task is stopped, service:" + groupedServiceName + ", clusters:" + clusters);
                     return;
                 }
 
+                // 获取缓存的service信息
                 ServiceInfo serviceObj = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
                 if (serviceObj == null) {
+                    // 根据serviceName从注册中心服务端获取Service信息
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
                     serviceInfoHolder.processServiceInfo(serviceObj);
                     lastRefTime = serviceObj.getLastRefTime();
                     return;
                 }
 
+                // 过期服务（服务的最新更新时间小于等于缓存刷新时间），从注册中心重新查询
                 if (serviceObj.getLastRefTime() <= lastRefTime) {
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
+                    // 处理Service消息
                     serviceInfoHolder.processServiceInfo(serviceObj);
                 }
+                // 刷新更新时间
                 lastRefTime = serviceObj.getLastRefTime();
                 if (CollectionUtils.isEmpty(serviceObj.getHosts())) {
                     incFailCount();
                     return;
                 }
+                // 下次更新缓存时间设置，默认为6秒
                 // TODO multiple time can be configured.
                 delayTime = serviceObj.getCacheMillis() * DEFAULT_UPDATE_CACHE_TIME_MULTIPLE;
+                // 重置失败数量为0
                 resetFailCount();
             } catch (Throwable e) {
                 incFailCount();
                 NAMING_LOGGER.warn("[NA] failed to update serviceName: " + groupedServiceName, e);
             } finally {
+                // 下次调度刷新时间，下次执行的时间与failCount有关
+                // failCount=0，则下次调度时间为6秒，最长为1分钟
+                // 即当无异常情况下缓存实例的刷新时间是6秒
                 executor.schedule(this, Math.min(delayTime << failCount, DEFAULT_DELAY * 60), TimeUnit.MILLISECONDS);
             }
         }

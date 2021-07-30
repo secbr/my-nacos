@@ -82,14 +82,22 @@ public class NacosNamingService implements NamingService {
     }
 
     private void init(Properties properties) throws NacosException {
+        // 校验contextPath非法字符，默认路径为/nacos
         ValidatorUtils.checkInitParam(properties);
+        // 获取命名空间，可以通过System.setProperty和Properties设置命名空间，默认为public
         this.namespace = InitUtils.initNamespaceForNaming(properties);
+
         InitUtils.initSerialization();
+        // 设置web root context
         InitUtils.initWebRootContext(properties);
+        // 自定义日志名称，可以通过properties或者System中设置com.alibaba.nacos.naming.log.filename指定名称，默认为naming.log
         initLogName(properties);
 
+        // 通过NotifyCenter注册了一个Publisher和Subscriber
         this.changeNotifier = new InstancesChangeNotifier();
+        // Publisher的注册过程在于建立InstancesChangeEvent.class与EventPublisher的关系。
         NotifyCenter.registerToPublisher(InstancesChangeEvent.class, 16384);
+        // 将Subscribe注册到Publisher
         NotifyCenter.registerSubscriber(changeNotifier);
         this.serviceInfoHolder = new ServiceInfoHolder(namespace, properties);
         this.clientProxy = new NamingClientProxyDelegate(this.namespace, serviceInfoHolder, properties, changeNotifier);

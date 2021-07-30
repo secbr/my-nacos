@@ -40,9 +40,9 @@ import java.util.concurrent.Callable;
  * @author deshao
  */
 public class InitUtils {
-    
+
     private static final String DEFAULT_END_POINT_PORT = "8080";
-    
+
     /**
      * Add a difference to the name naming. This method simply initializes the namespace for Naming. Config
      * initialization is not the same, so it cannot be reused directly.
@@ -52,13 +52,14 @@ public class InitUtils {
      */
     public static String initNamespaceForNaming(Properties properties) {
         String tmpNamespace = null;
-        
+
+        // 阿里云上也提供注册发现产品服务，兼容云上的命名空间设置
         String isUseCloudNamespaceParsing = properties.getProperty(PropertyKeyConst.IS_USE_CLOUD_NAMESPACE_PARSING,
                 System.getProperty(SystemPropertyKeyConst.IS_USE_CLOUD_NAMESPACE_PARSING,
                         String.valueOf(Constants.DEFAULT_USE_CLOUD_NAMESPACE_PARSING)));
-        
+
         if (Boolean.parseBoolean(isUseCloudNamespaceParsing)) {
-            
+
             tmpNamespace = TenantUtil.getUserTenantForAns();
             tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, new Callable<String>() {
                 @Override
@@ -68,7 +69,7 @@ public class InitUtils {
                     return namespace;
                 }
             });
-            
+
             tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, new Callable<String>() {
                 @Override
                 public String call() {
@@ -78,7 +79,9 @@ public class InitUtils {
                 }
             });
         }
-        
+
+        // 非阿里云注册产品，使用自定义的
+        // 获取服务启动设置的namespace
         tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, new Callable<String>() {
             @Override
             public String call() {
@@ -87,11 +90,13 @@ public class InitUtils {
                 return namespace;
             }
         });
-        
+
+        // 也可以通过properties获取namespace
         if (StringUtils.isEmpty(tmpNamespace)) {
             tmpNamespace = properties.getProperty(PropertyKeyConst.NAMESPACE);
         }
-        
+
+        // 如果System.getProperty和Properties都没有设置命名空间，使用默认的public
         tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, new Callable<String>() {
             @Override
             public String call() {
@@ -100,7 +105,7 @@ public class InitUtils {
         });
         return tmpNamespace;
     }
-    
+
     /**
      * Init web root context.
      *
@@ -117,9 +122,10 @@ public class InitUtils {
                 UtilAndComs.nacosUrlInstance = UtilAndComs.nacosUrlBase + "/instance";
             }
         });
+        // 已废弃：通过-Dnacos.naming.web.context设置contextPath
         initWebRootContext();
     }
-    
+
     /**
      * Init web root context.
      */
@@ -136,7 +142,7 @@ public class InitUtils {
             }
         });
     }
-    
+
     /**
      * Init end point.
      *
@@ -145,14 +151,14 @@ public class InitUtils {
      */
     public static String initEndpoint(final Properties properties) {
         if (properties == null) {
-            
+
             return "";
         }
         // Whether to enable domain name resolution rules
         String isUseEndpointRuleParsing = properties.getProperty(PropertyKeyConst.IS_USE_ENDPOINT_PARSING_RULE,
                 System.getProperty(SystemPropertyKeyConst.IS_USE_ENDPOINT_PARSING_RULE,
                         String.valueOf(ParamUtil.USE_ENDPOINT_PARSING_RULE_DEFAULT_VALUE)));
-        
+
         boolean isUseEndpointParsingRule = Boolean.parseBoolean(isUseEndpointRuleParsing);
         String endpointUrl;
         if (isUseEndpointParsingRule) {
@@ -164,31 +170,31 @@ public class InitUtils {
         } else {
             endpointUrl = properties.getProperty(PropertyKeyConst.ENDPOINT);
         }
-        
+
         if (StringUtils.isBlank(endpointUrl)) {
             return "";
         }
-        
+
         String endpointPort = TemplateUtils
                 .stringEmptyAndThenExecute(System.getenv(PropertyKeyConst.SystemEnv.ALIBABA_ALIWARE_ENDPOINT_PORT),
                         new Callable<String>() {
                             @Override
                             public String call() {
-                                
+
                                 return properties.getProperty(PropertyKeyConst.ENDPOINT_PORT);
                             }
                         });
-        
+
         endpointPort = TemplateUtils.stringEmptyAndThenExecute(endpointPort, new Callable<String>() {
             @Override
             public String call() {
                 return DEFAULT_END_POINT_PORT;
             }
         });
-        
+
         return endpointUrl + ":" + endpointPort;
     }
-    
+
     /**
      * Register subType for serialization.
      *

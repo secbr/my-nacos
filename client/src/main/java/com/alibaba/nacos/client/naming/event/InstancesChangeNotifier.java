@@ -38,11 +38,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.4.1
  */
 public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
-    
+
     private final Map<String, ConcurrentHashSet<EventListener>> listenerMap = new ConcurrentHashMap<String, ConcurrentHashSet<EventListener>>();
-    
+
     private final Object lock = new Object();
-    
+
     /**
      * register listener.
      *
@@ -59,13 +59,14 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
                 eventListeners = listenerMap.get(key);
                 if (eventListeners == null) {
                     eventListeners = new ConcurrentHashSet<EventListener>();
+                    // 将EventListener缓存到listenerMap
                     listenerMap.put(key, eventListeners);
                 }
             }
         }
         eventListeners.add(listener);
     }
-    
+
     /**
      * deregister listener.
      *
@@ -85,7 +86,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
             listenerMap.remove(key);
         }
     }
-    
+
     /**
      * check serviceName,clusters is subscribed.
      *
@@ -99,7 +100,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
         ConcurrentHashSet<EventListener> eventListeners = listenerMap.get(key);
         return CollectionUtils.isNotEmpty(eventListeners);
     }
-    
+
     public List<ServiceInfo> getSubscribeServices() {
         List<ServiceInfo> serviceInfos = new ArrayList<ServiceInfo>();
         for (String key : listenerMap.keySet()) {
@@ -107,7 +108,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
         }
         return serviceInfos;
     }
-    
+
     @Override
     public void onEvent(InstancesChangeEvent event) {
         String key = ServiceInfo
@@ -119,22 +120,23 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
         for (final EventListener listener : eventListeners) {
             final com.alibaba.nacos.api.naming.listener.Event namingEvent = transferToNamingEvent(event);
             if (listener instanceof AbstractEventListener && ((AbstractEventListener) listener).getExecutor() != null) {
+                // 调用AbstractEventListener的线程执行该Event
                 ((AbstractEventListener) listener).getExecutor().execute(() -> listener.onEvent(namingEvent));
             } else {
                 listener.onEvent(namingEvent);
             }
         }
     }
-    
+
     private com.alibaba.nacos.api.naming.listener.Event transferToNamingEvent(
             InstancesChangeEvent instancesChangeEvent) {
         return new NamingEvent(instancesChangeEvent.getServiceName(), instancesChangeEvent.getGroupName(),
                 instancesChangeEvent.getClusters(), instancesChangeEvent.getHosts());
     }
-    
+
     @Override
     public Class<? extends Event> subscribeType() {
         return InstancesChangeEvent.class;
     }
-    
+
 }
