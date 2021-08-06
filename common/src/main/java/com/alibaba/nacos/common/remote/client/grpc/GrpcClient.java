@@ -261,6 +261,7 @@ public abstract class GrpcClient extends RpcClient {
                 grpcExecutor.allowCoreThreadTimeOut(true);
                 
             }
+            // grpc端口在http的端口上偏移1000，默认（8848-->9848）
             int port = serverInfo.getServerPort() + rpcPortOffset();
             RequestGrpc.RequestFutureStub newChannelStubTemp = createNewChannelStub(serverInfo.getServerIp(), port);
             if (newChannelStubTemp != null) {
