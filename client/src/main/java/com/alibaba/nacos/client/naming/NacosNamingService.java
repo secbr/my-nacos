@@ -232,7 +232,7 @@ public class NacosNamingService implements NamingService {
             boolean subscribe) throws NacosException {
         ServiceInfo serviceInfo;
         String clusterString = StringUtils.join(clusters, ",");
-        // 如果订阅了服务
+        // 判断是否订阅服务
         if (subscribe) {
             // 先从客户端缓存获取服务信息
             serviceInfo = serviceInfoHolder.getServiceInfo(serviceName, groupName, clusterString);
