@@ -47,6 +47,7 @@ import static com.alibaba.nacos.client.utils.LogUtils.NAMING_LOGGER;
 
 /**
  * Failover reactor.
+ * 故障转移反应者
  *
  * @author nkorange
  */
