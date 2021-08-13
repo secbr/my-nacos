@@ -199,13 +199,18 @@ public class ServiceInfoHolder implements Closeable {
     private boolean isEmptyOrErrorPush(ServiceInfo serviceInfo) {
         return null == serviceInfo.getHosts() || (pushEmptyProtection && !serviceInfo.validate());
     }
-
+    
+    /**
+     * 判断是否需要变更本地ServiceInfo
+     */
     private boolean isChangedServiceInfo(ServiceInfo oldService, ServiceInfo newService) {
+        // 如果旧数据为null，则需要变更
         if (null == oldService) {
             NAMING_LOGGER.info("init new ips(" + newService.ipCount() + ") service: " + newService.getKey() + " -> "
                     + JacksonUtils.toJson(newService.getHosts()));
             return true;
         }
+        // 如果旧数据更新时间大于新数据更新时间，则打印警告日志
         if (oldService.getLastRefTime() > newService.getLastRefTime()) {
             NAMING_LOGGER
                     .warn("out of date data received, old-t: " + oldService.getLastRefTime() + ", new-t: " + newService
