@@ -98,6 +98,7 @@ public class FailoverReactor implements Closeable {
 
         executorService.scheduleWithFixedDelay(new DiskFileWriter(), 30, DAY_PERIOD_MINUTES, TimeUnit.MINUTES);
 
+        // 每10秒钟将ServiceInfo备份到缓存文件中
         // backup file on startup if failover directory is empty.
         executorService.schedule(new Runnable() {
             @Override
