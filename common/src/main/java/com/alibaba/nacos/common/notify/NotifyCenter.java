@@ -309,10 +309,13 @@ public class NotifyCenter {
             return INSTANCE.sharePublisher.publish(event);
         }
 
+        // 根据InstancesChangeEvent事件类型，获得对应的CanonicalName；
         final String topic = ClassUtils.getCanonicalName(eventType);
 
+        // 将CanonicalName作为Key，从NotifyCenter#publisherMap中获取对应的事件发布者（EventPublisher）；
         EventPublisher publisher = INSTANCE.publisherMap.get(topic);
         if (publisher != null) {
+            // EventPublisher将InstancesChangeEvent事件进行发布。
             return publisher.publish(event);
         }
         LOGGER.warn("There are no [{}] publishers for this event, please register", topic);
