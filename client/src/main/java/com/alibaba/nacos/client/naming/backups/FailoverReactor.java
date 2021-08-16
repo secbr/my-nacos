@@ -74,18 +74,22 @@ public class FailoverReactor implements Closeable {
     private final ScheduledExecutorService executorService;
 
     public FailoverReactor(ServiceInfoHolder serviceInfoHolder, String cacheDir) {
+        // 持有ServiceInfoHolder引用
         this.serviceInfoHolder = serviceInfoHolder;
+        // 拼接故障根目录：${user.home}/nacos/naming/public/failover
         this.failoverDir = cacheDir + FAILOVER_DIR;
-        // init executorService
+        // 初始化executorService
         this.executorService = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r);
+                // 守护线程模式运行
                 thread.setDaemon(true);
                 thread.setName("com.alibaba.nacos.naming.failover");
                 return thread;
             }
         });
+        // 其他初始化操作，通过executorService开启多个定时任务执行
         this.init();
     }
 
@@ -93,12 +97,12 @@ public class FailoverReactor implements Closeable {
      * Init.
      */
     public void init() {
-
+        // 初始化立即执行SwitchRefresher任务，执行间隔5秒
         executorService.scheduleWithFixedDelay(new SwitchRefresher(), 0L, 5000L, TimeUnit.MILLISECONDS);
-
+        // 初始化延迟30分钟执行任务DiskFileWriter，执行间隔24小时
         executorService.scheduleWithFixedDelay(new DiskFileWriter(), 30, DAY_PERIOD_MINUTES, TimeUnit.MINUTES);
 
-        // 每10秒钟将ServiceInfo备份到缓存文件中
+        // 每10秒将ServiceInfo备份到缓存文件中
         // backup file on startup if failover directory is empty.
         executorService.schedule(new Runnable() {
             @Override
@@ -111,6 +115,7 @@ public class FailoverReactor implements Closeable {
                     }
 
                     File[] files = cacheDir.listFiles();
+                    // 判断文件是否存在
                     if (files == null || files.length <= 0) {
                         new DiskFileWriter().run();
                     }
@@ -163,7 +168,7 @@ public class FailoverReactor implements Closeable {
 
                 if (lastModifiedMillis < modified) {
                     lastModifiedMillis = modified;
-                    // 获取故障转移文件内容
+                    // 获取故障转移标志文件内容
                     String failover = ConcurrentDiskUtil.getFileContent(failoverDir + UtilAndComs.FAILOVER_SWITCH,
                             Charset.defaultCharset().toString());
                     if (!StringUtils.isEmpty(failover)) {
@@ -218,6 +223,7 @@ public class FailoverReactor implements Closeable {
                         continue;
                     }
 
+                    // 如果是故障转移标志文件，则跳过
                     if (file.getName().equals(UtilAndComs.FAILOVER_SWITCH)) {
                         continue;
                     }
