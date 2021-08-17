@@ -57,7 +57,7 @@ public class Chooser<K, T> {
         Ref<T> ref = this.ref;
         // 生成0-1之间的随机数
         double random = ThreadLocalRandom.current().nextDouble(0, 1);
-        // 采用二分法查找数组中接近值（插入点），即随机数将要插入数组的位置，即第一个大于此键的元素索引。
+        // 采用二分法查找数组中指定值，如果不存在则返回（-(插入点) - 1），插入点即随机数将要插入数组的位置，即第一个大于此键的元素索引。
         int index = Arrays.binarySearch(ref.weights, random);
         // 如果没有查询到（返回-1或"-插入点"）
         if (index < 0) {
