@@ -55,20 +55,27 @@ public class Chooser<K, T> {
      */
     public T randomWithWeight() {
         Ref<T> ref = this.ref;
+        // 生成0-1之间的随机数
         double random = ThreadLocalRandom.current().nextDouble(0, 1);
+        // 采用二分法查找数组中接近值（插入点），即随机数将要插入数组的位置，即第一个大于此键的元素索引。
         int index = Arrays.binarySearch(ref.weights, random);
+        // 如果没有查询到（返回-1或"-插入点"）
         if (index < 0) {
             index = -index - 1;
         } else {
+            // 命中直接返回结果
             return ref.items.get(index);
         }
         
+        // 判断坐标未越界
         if (index < ref.weights.length) {
+            // 随机数小于指定坐标的数值，则返回坐标值
             if (random < ref.weights[index]) {
                 return ref.items.get(index);
             }
         }
         
+        // 此种情况不应该发生，但如果发生则返回最后一个位置的值
         /* This should never happen, but it ensures we will return a correct
          * object in case there is some floating point inequality problem
          * wrt the cumulative probabilities. */
@@ -101,7 +108,9 @@ public class Chooser<K, T> {
      */
     public void refresh(List<Pair<T>> itemsWithWeight) {
         Ref<T> newRef = new Ref<T>(itemsWithWeight);
+        // 准备数据，检查数据
         newRef.refresh();
+        // 上面数据刷新之后，这里重新初始化一个GenericPoller
         newRef.poller = this.ref.poller.refresh(newRef.items);
         this.ref = newRef;
     }
@@ -122,48 +131,60 @@ public class Chooser<K, T> {
         
         /**
          * Refresh.
+         * 获取参与计算的实例列表、计算递增数组数总和并进行检查
          */
         public void refresh() {
+            // 实例权重总和
             Double originWeightSum = (double) 0;
             
+            // 所有健康权重求和
             for (Pair<T> item : itemsWithWeight) {
                 
                 double weight = item.weight();
                 //ignore item which weight is zero.see test_randomWithWeight_weight0 in ChooserTest
+                // 权重小于等于0则不参与计算
                 if (weight <= 0) {
                     continue;
                 }
-                
+                // 有效实例放入列表
                 items.add(item.item());
+                // 如果值无限大
                 if (Double.isInfinite(weight)) {
                     weight = 10000.0D;
                 }
+                // 如果值为非数字
                 if (Double.isNaN(weight)) {
                     weight = 1.0D;
                 }
+                // 权重值累加
                 originWeightSum += weight;
             }
             
             double[] exactWeights = new double[items.size()];
             int index = 0;
+            // 计算每个节点权重占比，放入数组
             for (Pair<T> item : itemsWithWeight) {
                 double singleWeight = item.weight();
                 //ignore item which weight is zero.see test_randomWithWeight_weight0 in ChooserTest
                 if (singleWeight <= 0) {
                     continue;
                 }
+                // 计算每个节点权重占比
                 exactWeights[index++] = singleWeight / originWeightSum;
             }
             
+            // 初始化递增数组
             weights = new double[items.size()];
             double randomRange = 0D;
             for (int i = 0; i < index; i++) {
+                // 递增数组第i项值为items前i个值总和
                 weights[i] = randomRange + exactWeights[i];
                 randomRange += exactWeights[i];
             }
             
             double doublePrecisionDelta = 0.0001;
-            
+            // index遍历完则返回；
+            // 或weights最后一位值与1相比，误差小于0.0001，则返回
             if (index == 0 || (Math.abs(weights[index - 1] - 1) < doublePrecisionDelta)) {
                 return;
             }

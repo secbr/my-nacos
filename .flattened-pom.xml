@@ -106,79 +106,79 @@
     </snapshotRepository>
   </distributionManagement>
   <properties>
-    <dependency-mediator-maven-plugin.version>1.0.2</dependency-mediator-maven-plugin.version>
-    <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-    <mysql-connector-java.version>8.0.21</mysql-connector-java.version>
-    <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
-    <sonar-maven-plugin.version>3.0.2</sonar-maven-plugin.version>
-    <proto-google-common-protos.version>1.17.0</proto-google-common-protos.version>
-    <maven-flatten-version>1.1.0</maven-flatten-version>
-    <log4j.version>2.13.3</log4j.version>
-    <prometheus-simpleclient.version>0.5.0</prometheus-simpleclient.version>
-    <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
-    <p3c-pmd.version>1.3.0</p3c-pmd.version>
-    <truth.version>0.30</truth.version>
-    <jackson-core-asl.version>1.9.13</jackson-core-asl.version>
-    <maven-pmd-plugin.version>3.8</maven-pmd-plugin.version>
     <jackson-core.version>2.12.2</jackson-core.version>
-    <mina-core.version>2.0.0-RC1</mina-core.version>
-    <mockito-core.version>3.8.0</mockito-core.version>
-    <rpc-grpc-impl.version>1.3.5</rpc-grpc-impl.version>
-    <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
-    <httpasyncclient.version>4.1.3</httpasyncclient.version>
-    <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
-    <spring-boot-dependencies.version>2.1.17.RELEASE</spring-boot-dependencies.version>
-    <commons-io.version>2.7</commons-io.version>
-    <cglib-nodep.version>2.1</cglib-nodep.version>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
-    <protobuf-java.version>3.8.0</protobuf-java.version>
-    <protoc-gen-grpc-java.version>1.24.0</protoc-gen-grpc-java.version>
-    <reflections.version>0.9.11</reflections.version>
-    <maven.javadoc.skip>true</maven.javadoc.skip>
-    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-    <sonar.jacoco.itReportPath>${project.basedir}/../test/target/jacoco-it.exec</sonar.jacoco.itReportPath>
-    <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-    <servlet-api.version>3.0</servlet-api.version>
-    <commons-logging.version>1.2</commons-logging.version>
-    <commons-lang3.version>3.4</commons-lang3.version>
-    <logback.version>1.2.3</logback.version>
-    <commons-collections.version>3.2.2</commons-collections.version>
-    <tomcat-embed-jasper.version>9.0.40</tomcat-embed-jasper.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
     <commons-cli.version>1.2</commons-cli.version>
-    <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
-    <extra-enforcer-rules.version>1.0-beta-4</extra-enforcer-rules.version>
-    <netty-all.version>4.1.59.Final</netty-all.version>
     <hamcrest-all.version>1.3</hamcrest-all.version>
+    <protobuf-java.version>3.8.0</protobuf-java.version>
+    <slf4j-api.version>1.7.7</slf4j-api.version>
+    <mockito-all.version>1.10.19</mockito-all.version>
+    <proto-google-common-protos.version>1.17.0</proto-google-common-protos.version>
+    <spring-boot-dependencies.version>2.1.17.RELEASE</spring-boot-dependencies.version>
+    <mysql-connector-java.version>8.0.21</mysql-connector-java.version>
+    <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <cglib-nodep.version>2.1</cglib-nodep.version>
+    <jackson-core-asl.version>1.9.13</jackson-core-asl.version>
+    <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <logback.version>1.2.3</logback.version>
+    <jcip-annotations.version>1.0</jcip-annotations.version>
+    <maven-flatten-version>1.1.0</maven-flatten-version>
+    <commons-dbcp.version>1.4</commons-dbcp.version>
+    <jackson-databind.version>2.12.2</jackson-databind.version>
+    <HikariCP.version>3.4.2</HikariCP.version>
+    <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+    <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+    <netty-all.version>4.1.59.Final</netty-all.version>
+    <jjwt.version>0.11.2</jjwt.version>
+    <truth.version>0.30</truth.version>
+    <mockito-core.version>3.8.0</mockito-core.version>
+    <javatuples.version>1.2</javatuples.version>
     <jraft-core.version>1.3.5</jraft-core.version>
+    <httpasyncclient.version>4.1.3</httpasyncclient.version>
+    <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+    <p3c-pmd.version>1.3.0</p3c-pmd.version>
+    <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
+    <hessian.version>4.0.63</hessian.version>
+    <protoc-gen-grpc-java.version>1.24.0</protoc-gen-grpc-java.version>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <prometheus-simpleclient.version>0.5.0</prometheus-simpleclient.version>
+    <grpc-java.version>1.24.0</grpc-java.version>
+    <commons-collections.version>3.2.2</commons-collections.version>
+    <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
+    <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
+    <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+    <sonar.exclusions>file:**/generated-sources/**,**/test/**</sonar.exclusions>
+    <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+    <guava.version>30.1-jre</guava.version>
+    <commonOkHttp.version>0.4.1</commonOkHttp.version>
+    <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+    <sonar-maven-plugin.version>3.0.2</sonar-maven-plugin.version>
+    <extra-enforcer-rules.version>1.0-beta-4</extra-enforcer-rules.version>
+    <maven.test.skip>false</maven.test.skip>
+    <rpc-grpc-impl.version>1.3.5</rpc-grpc-impl.version>
+    <commons-io.version>2.7</commons-io.version>
+    <commons-logging.version>1.2</commons-logging.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
+    <servlet-api.version>3.0</servlet-api.version>
+    <maven-pmd-plugin.version>3.8</maven-pmd-plugin.version>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <log4j.version>2.13.3</log4j.version>
+    <tomcat-embed-jasper.version>9.0.40</tomcat-embed-jasper.version>
+    <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
+    <derby.version>10.14.2.0</derby.version>
+    <clirr-maven-plugin.version>2.7</clirr-maven-plugin.version>
+    <dependency-mediator-maven-plugin.version>1.0.2</dependency-mediator-maven-plugin.version>
+    <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
+    <commons-lang3.version>3.4</commons-lang3.version>
+    <reflections.version>0.9.11</reflections.version>
     <revision>2.0.2</revision>
     <jackson.annotations.version>2.12.2</jackson.annotations.version>
-    <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-    <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
-    <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
-    <hessian.version>4.0.63</hessian.version>
-    <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-    <slf4j-api.version>1.7.7</slf4j-api.version>
-    <HikariCP.version>3.4.2</HikariCP.version>
-    <guava.version>30.1-jre</guava.version>
-    <sonar.exclusions>file:**/generated-sources/**,**/test/**</sonar.exclusions>
-    <commons-dbcp.version>1.4</commons-dbcp.version>
-    <jjwt.version>0.11.2</jjwt.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <grpc-java.version>1.24.0</grpc-java.version>
+    <sonar.jacoco.itReportPath>${project.basedir}/../test/target/jacoco-it.exec</sonar.jacoco.itReportPath>
+    <mina-core.version>2.0.0-RC1</mina-core.version>
     <jacoco-maven-plugin.version>0.7.8</jacoco-maven-plugin.version>
-    <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
-    <commonOkHttp.version>0.4.1</commonOkHttp.version>
-    <maven.test.skip>false</maven.test.skip>
-    <clirr-maven-plugin.version>2.7</clirr-maven-plugin.version>
-    <javatuples.version>1.2</javatuples.version>
-    <derby.version>10.14.2.0</derby.version>
-    <jackson-databind.version>2.12.2</jackson-databind.version>
-    <mockito-all.version>1.10.19</mockito-all.version>
-    <jcip-annotations.version>1.0</jcip-annotations.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -864,9 +864,9 @@
         </plugins>
       </build>
       <properties>
-        <os.detected.arch>x86_64</os.detected.arch>
         <os.detected.name>osx</os.detected.name>
         <os.detected.classifier>osx-x86_64</os.detected.classifier>
+        <os.detected.arch>x86_64</os.detected.arch>
       </properties>
       <reporting>
         <plugins>

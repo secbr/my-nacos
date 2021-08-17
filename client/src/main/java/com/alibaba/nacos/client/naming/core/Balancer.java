@@ -60,6 +60,7 @@ public class Balancer {
          */
         public static Instance selectHost(ServiceInfo dom) {
             
+            // ServiceInfo中获去实例列表
             List<Instance> hosts = selectAll(dom);
             
             if (CollectionUtils.isEmpty(hosts)) {
@@ -83,6 +84,7 @@ public class Balancer {
             return null;
         }
         NAMING_LOGGER.debug("new Chooser");
+        // 重新组织数据格式
         List<Pair<Instance>> hostsWithWeight = new ArrayList<Pair<Instance>>();
         for (Instance host : hosts) {
             if (host.isHealthy()) {

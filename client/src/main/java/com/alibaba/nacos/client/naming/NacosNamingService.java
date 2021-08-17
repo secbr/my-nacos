@@ -369,14 +369,18 @@ public class NacosNamingService implements NamingService {
             boolean subscribe) throws NacosException {
         String clusterString = StringUtils.join(clusters, ",");
         if (subscribe) {
+            // 获取ServiceInfo
             ServiceInfo serviceInfo = serviceInfoHolder.getServiceInfo(serviceName, groupName, clusterString);
             if (null == serviceInfo) {
                 serviceInfo = clientProxy.subscribe(serviceName, groupName, clusterString);
             }
+            // 通过负载均衡算法获得其中一个实例
             return Balancer.RandomByWeight.selectHost(serviceInfo);
         } else {
+            // 获取ServiceInfo
             ServiceInfo serviceInfo = clientProxy
                     .queryInstancesOfService(serviceName, groupName, clusterString, 0, false);
+            // 通过负载均衡算法获得其中一个实例
             return Balancer.RandomByWeight.selectHost(serviceInfo);
         }
     }
