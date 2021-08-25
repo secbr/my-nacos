@@ -95,13 +95,16 @@ public class InstanceController {
     @Secured(parser = NamingResourceParser.class, action = ActionTypes.WRITE)
     public String register(HttpServletRequest request) throws Exception {
 
+        // 获取namespaceId，默认为：public
         final String namespaceId = WebUtils
                 .optional(request, CommonParams.NAMESPACE_ID, Constants.DEFAULT_NAMESPACE_ID);
+        // 获取并检查serviceName为非空
         final String serviceName = WebUtils.required(request, CommonParams.SERVICE_NAME);
+        // 检查serviceName格式：groupName@@serviceName
         NamingUtils.checkServiceNameFormat(serviceName);
-
+        // 封装并校验Instance对象
         final Instance instance = parseInstance(request);
-
+        // 如果gRpc协议则采用Client（V2）操作，否则采用Server（V1）操作
         getInstanceOperator().registerInstance(namespaceId, serviceName, instance);
         return "ok";
     }
@@ -426,7 +429,9 @@ public class InstanceController {
     private Instance parseInstance(HttpServletRequest request) throws Exception {
 
         String serviceName = WebUtils.required(request, CommonParams.SERVICE_NAME);
+        // 获取app的值，默认为：DEFAULT
         String app = WebUtils.optional(request, "app", "DEFAULT");
+        // 根据request参数封装Instance对象
         Instance instance = getIpAddress(request);
         instance.setApp(app);
         instance.setServiceName(serviceName);

@@ -100,7 +100,7 @@ public class InstanceOperatorClientImpl implements InstanceOperator {
         createIpPortClientIfAbsent(clientId, ephemeral);
         // 创建一个新的Service
         Service service = getService(namespaceId, serviceName, ephemeral);
-        // 实例注册
+        // 实例注册（ClientOperationServiceProxy）
         clientOperationService.registerInstance(service, instance, clientId);
     }
 

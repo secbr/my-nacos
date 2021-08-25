@@ -47,8 +47,12 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
     
     @Override
     public void registerInstance(Service service, Instance instance, String clientId) {
+        // 如果Service存在，则返回；如不存在，则返回当前Service
+        // 服务器端的Service通过ServiceManager管理
         Service singleton = ServiceManager.getInstance().getSingleton(service);
+        // 客户端信息，通过ClientManager管理
         Client client = clientManager.getClient(clientId);
+        // 实例发布信息封装
         InstancePublishInfo instanceInfo = getPublishInfo(instance);
         client.addServiceInstance(singleton, instanceInfo);
         client.setLastUpdatedTime();
