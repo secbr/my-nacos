@@ -92,10 +92,13 @@ public class DistroFilter implements Filter {
                 throw new NoSuchMethodException(req.getMethod() + " " + path);
             }
             
+            // 如果没有注解直接进行后续处理
             if (!method.isAnnotationPresent(CanDistro.class)) {
                 filterChain.doFilter(req, resp);
                 return;
             }
+            
+            // gRPC为IP:端口；其他版本为groupName@@serviceName
             String distroTag = distroTagGenerator.getResponsibleTag(req);
             
             if (distroMapper.responsible(distroTag)) {

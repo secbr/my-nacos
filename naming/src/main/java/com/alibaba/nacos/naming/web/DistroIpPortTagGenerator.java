@@ -56,6 +56,7 @@ public class DistroIpPortTagGenerator implements DistroTagGenerator {
             ip = ip.trim();
         }
         port = StringUtils.isBlank(port) ? "0" : port.trim();
+        // 拼接结果格式为IP:端口，比如：ip:8080或ip:0
         return ip + InternetAddressUtil.IP_PORT_SPLITER + port;
     }
 }

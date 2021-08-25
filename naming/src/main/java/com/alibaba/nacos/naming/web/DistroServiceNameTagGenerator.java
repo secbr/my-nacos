@@ -28,6 +28,12 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DistroServiceNameTagGenerator implements DistroTagGenerator {
     
+    
+    /**
+     * 返回格式为：groupName@@serviceName
+     * @param request http request.
+     * @return
+     */
     @Override
     public String getResponsibleTag(ReuseHttpServletRequest request) {
         String serviceName = request.getParameter(CommonParams.SERVICE_NAME);

@@ -54,6 +54,7 @@ public class DistroTagGeneratorImpl implements DistroTagGenerator {
      * @return actual tag generator
      */
     private DistroTagGenerator getTagGenerator() {
+        // 如果使用GRPC则使用DistroIpPortTagGenerator，否则使用DistroServiceNameTagGenerator
         return upgradeJudgement.isUseGrpcFeatures() ? ipPortTag : serviceNameTag;
     }
 }
