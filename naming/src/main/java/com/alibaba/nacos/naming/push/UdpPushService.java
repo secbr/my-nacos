@@ -139,6 +139,7 @@ public class UdpPushService implements ApplicationContextAware, ApplicationListe
                 Map<String, Object> cache = new HashMap<>(16);
                 long lastRefTime = System.nanoTime();
                 for (PushClient client : clients.values()) {
+                    // 移除僵尸客户端
                     if (client.zombie()) {
                         Loggers.PUSH.debug("client is zombie: " + client);
                         clients.remove(client.toString());
@@ -159,6 +160,7 @@ public class UdpPushService implements ApplicationContextAware, ApplicationListe
                         Loggers.PUSH.debug("[PUSH-CACHE] cache hit: {}:{}", serviceName, client.getAddrStr());
                     }
                     
+                    // 封装AckEntry对象
                     if (compressData != null) {
                         ackEntry = prepareAckEntry(client, compressData, data, lastRefTime);
                     } else {
@@ -172,7 +174,7 @@ public class UdpPushService implements ApplicationContextAware, ApplicationListe
                     Loggers.PUSH.info("serviceName: {} changed, schedule push for: {}, agent: {}, key: {}",
                             client.getServiceName(), client.getAddrStr(), client.getAgent(),
                             (ackEntry == null ? null : ackEntry.getKey()));
-                    
+                    // 通过UDP通知其他客户端
                     udpPush(ackEntry);
                 }
             } catch (Exception e) {

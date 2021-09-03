@@ -163,6 +163,7 @@ public class InstanceOperatorServiceImpl implements InstanceOperator {
 
         // now try to enable the push
         try {
+            // UDP端口大于0，且agent指定的编程语言职场UDP
             if (subscriber.getPort() > 0 && pushService.canEnablePush(subscriber.getAgent())) {
                 subscriberServiceV1.addClient(namespaceId, serviceName, cluster, subscriber.getAgent(),
                         new InetSocketAddress(clientIP, subscriber.getPort()), pushDataSource, StringUtils.EMPTY,

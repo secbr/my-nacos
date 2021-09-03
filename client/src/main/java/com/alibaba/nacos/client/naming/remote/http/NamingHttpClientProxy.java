@@ -125,6 +125,7 @@ public class NamingHttpClientProxy extends AbstractNamingClientProxy {
         this.namespaceId = namespaceId;
         // 构建BeatReactor
         this.beatReactor = new BeatReactor(this, properties);
+        // 构建UDP端口监听，
         this.pushReceiver = new PushReceiver(serviceInfoHolder);
         this.maxRetry = ConvertUtils.toInt(properties.getProperty(PropertyKeyConst.NAMING_REQUEST_DOMAIN_RETRY_COUNT,
                 String.valueOf(UtilAndComs.REQUEST_DOMAIN_RETRY_COUNT)));
