@@ -67,13 +67,17 @@ public class PushReceiver implements Runnable, Closeable {
     
     public PushReceiver(ServiceInfoHolder serviceInfoHolder) {
         try {
+            // 持有ServiceInfoHolder引用
             this.serviceInfoHolder = serviceInfoHolder;
+            // 获取UDP端口
             String udpPort = getPushReceiverUdpPort();
+            // 根据端口情况，构建DatagramSocket，如果未设置端口，则采用随机端口
             if (StringUtils.isEmpty(udpPort)) {
                 this.udpSocket = new DatagramSocket();
             } else {
                 this.udpSocket = new DatagramSocket(new InetSocketAddress(Integer.parseInt(udpPort)));
             }
+            // 创建只有一个线程的ScheduledExecutorService
             this.executorService = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
@@ -83,7 +87,8 @@ public class PushReceiver implements Runnable, Closeable {
                     return thread;
                 }
             });
-            
+
+            // 执行线程，PushReceiver实现了Runnable接口
             this.executorService.execute(this);
         } catch (Exception e) {
             NAMING_LOGGER.error("[NA] init udp socket failed", e);
@@ -97,15 +102,17 @@ public class PushReceiver implements Runnable, Closeable {
                 
                 // byte[] is initialized with 0 full filled by default
                 byte[] buffer = new byte[UDP_MSS];
+                // 创建DatagramPacket用于存储接收到的报文
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                
+                // 接收报文，在未接收到报文时会进行线程阻塞
                 udpSocket.receive(packet);
-                
+                // 将报文转换为json格式
                 String json = new String(IoUtils.tryDecompress(packet.getData()), UTF_8).trim();
                 NAMING_LOGGER.info("received push data: " + json + " from " + packet.getAddress().toString());
-                
+                // 将json格式的报文转换为PushPacket对象
                 PushPacket pushPacket = JacksonUtils.toObj(json, PushPacket.class);
                 String ack;
+                // 如果符合条件，则调用ServiceInfoHolder进行接收报文处理，并返回应答报文
                 if (PUSH_PACKAGE_TYPE_DOM.equals(pushPacket.type) || PUSH_PACKAGE_TYPE_SERVICE.equals(pushPacket.type)) {
                     serviceInfoHolder.processServiceInfo(pushPacket.data);
                     
@@ -122,7 +129,7 @@ public class PushReceiver implements Runnable, Closeable {
                     ack = "{\"type\": \"unknown-ack\"" + ", \"lastRefTime\":\"" + pushPacket.lastRefTime
                             + "\", \"data\":" + "\"\"}";
                 }
-                
+                // 发送应答报文
                 udpSocket.send(new DatagramPacket(ack.getBytes(UTF_8), ack.getBytes(UTF_8).length,
                         packet.getSocketAddress()));
             } catch (Exception e) {
