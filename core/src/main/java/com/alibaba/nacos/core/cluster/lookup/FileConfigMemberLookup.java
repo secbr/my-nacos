@@ -54,6 +54,7 @@ public class FileConfigMemberLookup extends AbstractMemberLookup {
     
     @Override
     public void doStart() throws NacosException {
+        // 从磁盘cluster.conf读取集群配置文件
         readClusterConfFromDisk();
         
         // Use the inotify mechanism to monitor file changes and automatically
@@ -78,6 +79,7 @@ public class FileConfigMemberLookup extends AbstractMemberLookup {
     private void readClusterConfFromDisk() {
         Collection<Member> tmpMembers = new ArrayList<>();
         try {
+            // 从磁盘文件读取节点列表
             List<String> tmp = EnvUtil.readClusterConf();
             tmpMembers = MemberUtil.readServerConf(tmp);
         } catch (Throwable e) {

@@ -60,6 +60,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
+ * Nacos集群节点管理
+ *
  * Cluster node management in Nacos.
  *
  * <p>{@link ServerMemberManager#init()} Cluster node manager initialization {@link ServerMemberManager#shutdown()} The
@@ -135,29 +137,40 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
      */
     private final MemberInfoReportTask infoReportTask = new MemberInfoReportTask();
     
+    /**
+     * 构造方法
+     */
     public ServerMemberManager(ServletContext servletContext) throws Exception {
+        // 初始化集群节点列表
         this.serverList = new ConcurrentSkipListMap<>();
         EnvUtil.setContextPath(servletContext.getContextPath());
-        
+        // 初始化方法
         init();
     }
     
     protected void init() throws NacosException {
         Loggers.CORE.info("Nacos-related cluster resource initialization");
+        // 获取服务端口（server.port），默认为8848
         this.port = EnvUtil.getProperty(SERVER_PORT_PROPERTY, Integer.class, DEFAULT_SERVER_PORT);
+        // 获取当前节点的IP，并拼接端口
         this.localAddress = InetUtils.getSelfIP() + ":" + port;
+        // 封装当前节点的IP、端口、状态到Member对象中
         this.self = MemberUtil.singleParse(this.localAddress);
+        // 设置当前Member的版本信息，version=${project.version}，取自common项目resources/nacos-version.txt文件内的配置
         this.self.setExtendVal(MemberMetaDataConstants.VERSION, VersionUtils.version);
         
         // init abilities.
+        // 初始化当前节点支持的能力（默认支持远程连接、支持Jraft协议）
         this.self.setAbilities(initMemberAbilities());
-        
+        // 将当前节点存储到节点列表当中
         serverList.put(self.getAddress(), self);
         
         // register NodeChangeEvent publisher to NotifyManager
+        //  发布MembersChangeEvent事件并订阅IPChangeEvent事件
         registerClusterEvent();
         
         // Initializes the lookup mode
+        // 初始化并启动寻址模式
         initAndStartLookup();
         
         if (serverList.isEmpty()) {
@@ -176,8 +189,10 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     }
     
     private void initAndStartLookup() throws NacosException {
+        // 创建寻址模式，包括单机模式、文件（file）寻址和地址服务（address-server）寻址
         this.lookup = LookupFactory.createLookUp(this);
         isUseAddressServer = this.lookup.useAddressServer();
+        // 寻址适配器启动
         this.lookup.start();
     }
     
@@ -194,10 +209,12 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     }
     
     private void registerClusterEvent() {
+        // 发布MembersChangeEvent事件
         // Register node change events
         NotifyCenter.registerToPublisher(MembersChangeEvent.class,
                 EnvUtil.getProperty(MEMBER_CHANGE_EVENT_QUEUE_SIZE_PROPERTY, Integer.class, DEFAULT_MEMBER_CHANGE_EVENT_QUEUE_SIZE));
-        
+    
+        // 订阅IPChangeEvent事件
         // The address information of this node needs to be dynamically modified
         // when registering the IP change of this node
         NotifyCenter.registerSubscriber(new Subscriber<InetUtils.IPChangeEvent>() {
@@ -344,7 +361,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         
         boolean isContainSelfIp = members.stream()
                 .anyMatch(ipPortTmp -> Objects.equals(localAddress, ipPortTmp.getAddress()));
-        
+        // 判断自身是否在列表中，如果在这为true，否则设置为false并添加自身节点
         if (isContainSelfIp) {
             isInIpList = true;
         } else {
@@ -357,7 +374,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         // must have changed; if the number of clusters is the same, then compare whether
         // there is a difference; if there is a difference, then the cluster node changes
         // are involved and all recipients need to be notified of the node change event
-        
+        // 集群中地址列表是否有变化
         boolean hasChange = members.size() != serverList.size();
         ConcurrentSkipListMap<String, Member> tmpMap = new ConcurrentSkipListMap<>();
         Set<String> tmpAddressInfo = new ConcurrentHashSet<>();
@@ -365,11 +382,13 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
             final String address = member.getAddress();
             
             Member existMember = serverList.get(address);
+            // 有新的节点加入
             if (existMember == null) {
                 hasChange = true;
                 tmpMap.put(address, member);
             } else {
                 //to keep extendInfo and abilities that report dynamically.
+                // 已存在，更新
                 tmpMap.put(address, existMember);
             }
             
@@ -388,9 +407,12 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         // Persist the current cluster node information to cluster.conf
         // <important> need to put the event publication into a synchronized block to ensure
         // that the event publication is sequential
+        // 集群节点有变更
         if (hasChange) {
+            // 同步写入磁盘文件cluster.conf中
             MemberUtil.syncToFile(finalMembers);
             Event event = MembersChangeEvent.builder().members(finalMembers).build();
+            // 发布MembersChangeEvent事件
             NotifyCenter.publishEvent(event);
         }
         

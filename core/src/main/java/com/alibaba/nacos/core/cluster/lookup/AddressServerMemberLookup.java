@@ -94,6 +94,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
     @Override
     public void doStart() throws NacosException {
         this.maxFailCount = Integer.parseInt(EnvUtil.getProperty(HEALTH_CHECK_FAIL_COUNT_PROPERTY, DEFAULT_HEALTH_CHECK_FAIL_COUNT));
+        // http://jmenv.tbsite.net:8080/serverlist
         initAddressSys();
         run();
     }
@@ -149,7 +150,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
         if (!success) {
             throw new NacosException(NacosException.SERVER_ERROR, ex);
         }
-        
+        // 默认每5秒向服务请求一次
         GlobalExecutor.scheduleByCommon(new AddressServerSyncTask(), DEFAULT_SYNC_TASK_DELAY_MS);
     }
     
